@@ -5,22 +5,30 @@
 ###
 FROM phusion/baseimage:0.9.11
 
-####
-# Install prequisites + cleanup
-RUN apt-get update && apt-get install -y curl logrotate && \
-	apt-get clean && rm -rf /tmp/* /var/tmp/* /var/lib/apt/lists/*
+# Install using one RUN line to get around 42 AUFS layers limit.
+RUN \
+  echo "# Base" ;\
+  apt-get update -qq ;\
+  apt-get install -q -y build-essential python-dev python-setuptools wget ;\
+  \
+echo "# Install pymongo" ;\
+  easy_install pymongo ;\
+  \
+echo "# Install MMS" ;\
+  cd /opt ;\
+  wget https://mms.mongodb.com/settings/mms-monitoring-agent.tar.gz --no-check-certificate ;\
+  tar zxf mms-monitoring-agent.tar.gz ;\
+  rm mms-monitoring-agent.tar.gz ;\
+  \
+echo "# Generate start script" ;\
+  cd /usr/bin ;\
+  echo '#!/bin/bash' > mms-agent ;\
+  echo 'sed -i "s/@API_KEY@/$MMS_API_KEY/g" /opt/mms-agent/settings.py' >> mms-agent ;\
+  echo 'sed -i "s/@SECRET_KEY@/$MMS_SECRET_KEY/g" /opt/mms-agent/settings.py' >> mms-agent ;\
+  echo "python /opt/mms-agent/agent.py" >> mms-agent ;\
+  chmod +x mms-agent ;\
+  \
+true
+# END RUN
 
-ADD configure.sh /
-
-####
-# Install Agent itself
-RUN curl -sSL https://mms.mongodb.com/download/agent/monitoring/mongodb-mms-monitoring-agent_latest_amd64.deb -o mms.deb && \
-	dpkg -i mms.deb && \
-   	rm mms.deb
-
-####
-# Make sure the app is configured correctly
-ENTRYPOINT ["/configure.sh"]
-USER mongodb-mms-agent
-
-CMD ["mongodb-mms-monitoring-agent", "-conf", "/etc/mongodb-mms/monitoring-agent.config"]
+CMD ["mms-agent"]
