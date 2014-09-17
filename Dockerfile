@@ -21,6 +21,6 @@ RUN curl -sSL https://mms.mongodb.com/download/agent/monitoring/mongodb-mms-moni
 ####
 # Make sure the app is configured correctly
 ENTRYPOINT ["/configure.sh"]
-USER mongodb-mms-agent
+# USER mongodb-mms-agent
 
 CMD ["mongodb-mms-monitoring-agent", "-conf", "/etc/mongodb-mms/monitoring-agent.config"]
