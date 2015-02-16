@@ -5,30 +5,18 @@
 ###
 FROM phusion/baseimage:0.9.11
 
-# Install using one RUN line to get around 42 AUFS layers limit.
-RUN \
-  echo "# Base" ;\
-  apt-get update -qq ;\
-  apt-get install -q -y build-essential python-dev python-setuptools wget ;\
-  \
-echo "# Install pymongo" ;\
-  easy_install pymongo ;\
-  \
-echo "# Install MMS" ;\
-  cd /opt ;\
-  wget https://mms.mongodb.com/settings/mms-monitoring-agent.tar.gz --no-check-certificate ;\
-  tar zxf mms-monitoring-agent.tar.gz ;\
-  rm mms-monitoring-agent.tar.gz ;\
-  \
-echo "# Generate start script" ;\
-  cd /usr/bin ;\
-  echo '#!/bin/bash' > mms-agent ;\
-  echo 'sed -i "s/@API_KEY@/$MMS_API_KEY/g" /opt/mms-agent/settings.py' >> mms-agent ;\
-  echo 'sed -i "s/@SECRET_KEY@/$MMS_SECRET_KEY/g" /opt/mms-agent/settings.py' >> mms-agent ;\
-  echo "python /opt/mms-agent/agent.py" >> mms-agent ;\
-  chmod +x mms-agent ;\
-  \
-true
-# END RUN
+RUN apt-get update && apt-get install -y curl logrotate
 
-CMD ["mms-agent"]
+# Get latest from https://mms.mongodb.com/settings/monitoring-agent
+RUN curl -sSL https://mms.mongodb.com/download/agent/monitoring/mongodb-mms-monitoring-agent_3.0.0.167-1_amd64.deb -o mms.deb
+RUN dpkg -i mms.deb
+RUN rm mms.deb
+
+ADD entrypoint.sh /usr/bin/entrypoint.sh
+RUN chmod +x /usr/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/bin/entrypoint.sh"]
+
+USER mongodb-mms-agent
+CMD ["mongodb-mms-monitoring-agent","-conf","/etc/mongodb-mms/monitoring-agent.config"]
+
