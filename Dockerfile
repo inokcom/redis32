@@ -3,7 +3,7 @@
 # A simple image for installing the mongodb-mms-monitoring-agent
 #
 ###
-FROM phusion/baseimage:0.9.11
+FROM stackbrew/ubuntu:trusty
 
 RUN apt-get update && apt-get install -y curl logrotate
 
