@@ -40,7 +40,4 @@ RUN mkdir /data && chown redis:redis /data
 VOLUME /data
 WORKDIR /data
 
-COPY docker-entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
-
-CMD [ "redis-server" ]
+CMD [ "redis-server", "/data/redis.conf" ]
