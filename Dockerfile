@@ -1,5 +1,5 @@
-# Dockerizing OpenVpn
-# 
+# Dockerizing Redis 32 bit
+# https://github.com/docker-library/redis/
 FROM quay.io/inok/baseimage
 
 # add our user and group first to make sure their IDs get assigned consistently, regardless of whatever dependencies get added
@@ -31,7 +31,7 @@ RUN buildDeps='gcc libc6-dev make'; \
 	&& echo "$REDIS_DOWNLOAD_SHA1 *redis.tar.gz" | sha1sum -c - \
 	&& tar -xzf redis.tar.gz -C /usr/src/redis --strip-components=1 \
 	&& rm redis.tar.gz \
-	&& make -C /usr/src/redis \
+	&& make 32bit -C /usr/src/redis \
 	&& make -C /usr/src/redis install \
 	&& rm -r /usr/src/redis \
 	&& apt-get purge -y --auto-remove $buildDeps
